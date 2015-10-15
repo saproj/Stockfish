@@ -680,6 +680,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   // our state pointer to point to the new (ready to be updated) state.
   std::memcpy(&newSt, st, offsetof(StateInfo, key));
   newSt.previous = st;
+  newSt.second_previous = st->previous;
   st = &newSt;
 
   // Increment ply counters. In particular, rule50 will be reset to zero later on
@@ -927,6 +928,7 @@ void Position::do_null_move(StateInfo& newSt) {
 
   std::memcpy(&newSt, st, sizeof(StateInfo));
   newSt.previous = st;
+  newSt.second_previous = st->previous;
   st = &newSt;
 
   if (st->epSquare != SQ_NONE)
@@ -1072,7 +1074,7 @@ bool Position::is_draw() const {
   StateInfo* stp = st;
   for (int i = 2, e = std::min(st->rule50, st->pliesFromNull); i <= e; i += 2)
   {
-      stp = stp->previous->previous;
+      stp = stp->second_previous;
 
       if (stp->key == st->key)
           return true; // Draw at first repetition

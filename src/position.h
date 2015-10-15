@@ -72,6 +72,7 @@ struct StateInfo {
   Bitboard   checkersBB;
   PieceType  capturedType;
   StateInfo* previous;
+  StateInfo* second_previous;
 };
 
 
