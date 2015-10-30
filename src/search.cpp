@@ -1575,7 +1575,7 @@ void check_time() {
                              &&  elapsed > Time.available() * 3 / 4;
 
       if (   stillAtFirstMove
-          || elapsed > Time.maximum() - 2 * TimerThread::Resolution)
+          || elapsed > Time.cutoff())
           Signals.stop = true;
   }
   else if (Limits.movetime && elapsed >= Limits.movetime)
