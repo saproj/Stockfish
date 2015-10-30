@@ -86,6 +86,7 @@ void TimeManagement::init(Search::LimitsType& limits, Color us, int ply)
   int moveOverhead    = Options["Move Overhead"];
   int slowMover       = Options["Slow Mover"];
   int npmsec          = Options["nodestime"];
+  int maximumTime;
 
   // If we have to play in 'nodes as time' mode, then convert from time
   // to nodes, and use resulting values in time management formulas.
@@ -131,4 +132,6 @@ void TimeManagement::init(Search::LimitsType& limits, Color us, int ply)
       optimumTime += optimumTime / 4;
 
   optimumTime = std::min(optimumTime, maximumTime);
+
+  cutoffTime = maximumTime - std::max((maximumTime - optimumTime) / 8, 2 * TimerThread::Resolution);
 }
