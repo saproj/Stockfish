@@ -133,5 +133,5 @@ void TimeManagement::init(Search::LimitsType& limits, Color us, int ply)
 
   optimumTime = std::min(optimumTime, maximumTime);
 
-  cutoffTime = maximumTime - std::max((maximumTime - optimumTime) / 10, 2 * TimerThread::Resolution);
+  cutoffTime = maximumTime - std::max((maximumTime - optimumTime) / 5, 2 * TimerThread::Resolution);
 }
