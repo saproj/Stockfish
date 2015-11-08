@@ -68,6 +68,8 @@ struct StateInfo {
   Square epSquare;
 
   // Not copied when making a move
+  // memcpy-ing up to the 8-byte-aligned 'key' may be faster
+  int        seenBefore;
   Key        key;
   Bitboard   checkersBB;
   PieceType  capturedType;
@@ -168,6 +170,7 @@ public:
   Thread* this_thread() const;
   uint64_t nodes_searched() const;
   void set_nodes_searched(uint64_t n);
+  void calc_seen_before();
   bool is_draw() const;
   int rule50_count() const;
   Score psq_score() const;

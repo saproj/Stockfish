@@ -822,6 +822,9 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   // Set capture piece
   st->capturedType = captured;
 
+  // Draw at first repetition
+  st->seenBefore = 1;
+
   // Update the key with the final value
   st->key = k;
 
@@ -936,6 +939,7 @@ void Position::do_null_move(StateInfo& newSt) {
   }
 
   st->key ^= Zobrist::side;
+  st->seenBefore = 1; // Draw at first repetition
   prefetch(TT.first_entry(st->key));
 
   ++st->rule50;
@@ -1061,6 +1065,27 @@ Value Position::see(Move m) const {
 }
 
 
+/// Position::calc_seen_before() calculates st->seenBefore - the number of times
+/// this position occurred before in the game. This function is called for
+/// positions up to the root. For all positions we arrive at during search
+/// st->seenBefore is set to 1 in do_move() or do_null_move().
+
+void Position::calc_seen_before()
+{
+  StateInfo* stp = st;
+  for (int i = 2, e = std::min(st->rule50, st->pliesFromNull); i <= e; i += 2)
+  {
+      stp = stp->previous->previous;
+
+      if (stp->key == st->key) {
+          st->seenBefore = stp->seenBefore + 1;
+          return;
+      }
+  }
+  st->seenBefore = 0;
+}
+
+
 /// Position::is_draw() tests whether the position is drawn by 50-move rule
 /// or by repetition. It does not detect stalemates.
 
@@ -1075,7 +1100,7 @@ bool Position::is_draw() const {
       stp = stp->previous->previous;
 
       if (stp->key == st->key)
-          return true; // Draw at first repetition
+          return stp->seenBefore;
   }
 
   return false;

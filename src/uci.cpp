@@ -68,6 +68,7 @@ namespace {
         return;
 
     pos.set(fen, Options["UCI_Chess960"], Threads.main());
+    pos.calc_seen_before();
     SetupStates = Search::StateStackPtr(new std::stack<StateInfo>);
 
     // Parse move list (if any)
@@ -75,6 +76,7 @@ namespace {
     {
         SetupStates->push(StateInfo());
         pos.do_move(m, SetupStates->top(), pos.gives_check(m, CheckInfo(pos)));
+        pos.calc_seen_before();
     }
   }
 
