@@ -186,17 +186,24 @@ void ThreadPool::start_thinking(Position& pos, StateList& states,
 
   Tablebases::filter_root_moves(pos, rootMoves);
 
-  StateInfo tmp = states.back();
+  // After ownership transfer 'states' becomes empty, so if we stop the search
+  // and call 'go' again without setting a new position states.get() == NULL.
+  assert(states.size() || setupStates.size());
+
+  if (!states.empty())
+      setupStates = std::move(states); // Ownership transfer, states is now empty
+
+  StateInfo tmp = setupStates.back();
 
   for (Thread* th : Threads)
   {
       th->maxPly = 0;
       th->rootDepth = DEPTH_ZERO;
       th->rootMoves = rootMoves;
-      th->rootPos.set(pos.fen(), pos.is_chess960(), &states.back(), th);
+      th->rootPos.set(pos.fen(), pos.is_chess960(), &setupStates.back(), th);
   }
 
-  states.back() = tmp; // Restore st->previous, cleared by Position::set()
+  setupStates.back() = tmp; // Restore st->previous, cleared by Position::set()
 
   main()->start_searching();
 }
