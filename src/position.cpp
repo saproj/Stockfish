@@ -1038,18 +1038,24 @@ Value Position::see(Move m) const {
 /// Position::is_draw() tests whether the position is drawn by 50-move rule
 /// or by repetition. It does not detect stalemates.
 
-bool Position::is_draw() const {
+bool Position::is_draw(int depthForThreefold) const {
 
   if (st->rule50 > 99 && (!checkers() || MoveList<LEGAL>(*this).size()))
       return true;
 
+  int repN = 0;
   StateInfo* stp = st;
   for (int i = 2, e = std::min(st->rule50, st->pliesFromNull); i <= e; i += 2)
   {
       stp = stp->previous->previous;
 
       if (stp->key == st->key)
-          return true; // Draw at first repetition
+      {
+          if (i <= depthForThreefold)
+              return true; // Draw at first repetition
+          else if (repN++)
+              return true; // Draw at second repetition
+      }
   }
 
   return false;
