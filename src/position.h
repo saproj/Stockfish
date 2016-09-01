@@ -57,6 +57,7 @@ struct StateInfo {
   int    pliesFromNull;
   Score  psq;
   Square epSquare;
+  bool   seenBefore;
 
   // Not copied when making a move
   Key        key;
@@ -162,6 +163,7 @@ public:
   Thread* this_thread() const;
   uint64_t nodes_searched() const;
   void set_nodes_searched(uint64_t n);
+  void calc_seen_before();
   bool is_draw() const;
   int rule50_count() const;
   Score psq_score() const;
