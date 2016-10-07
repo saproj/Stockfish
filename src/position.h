@@ -133,8 +133,10 @@ public:
   void undo_null_move();
 
   // Static Exchange Evaluation
-  Value see(Move m) const;
-  Value see_sign(Move m) const;
+  bool see_ge(Move m, Value v) const;
+  bool see_g(Move m, Value v) const { return see_ge(m, v + 1); }
+  bool see_l(Move m, Value v) const { return !see_ge(m, v); }
+  bool see_le(Move m, Value v) const { return !see_ge(m, v + 1); }
 
   // Accessing hash keys
   Key key() const;
