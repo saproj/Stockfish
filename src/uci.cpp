@@ -78,6 +78,8 @@ namespace {
         States->push_back(StateInfo());
         pos.do_move(m, States->back());
     }
+
+    pos.zero_non_draw_keys();
   }
 
 
