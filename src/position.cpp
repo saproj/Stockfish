@@ -702,7 +702,7 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
   // in case of a capture or a pawn move.
   ++gamePly;
   ++st->rule50;
-  ++st->pliesFromNull;
+  ++st->drawDepth;
 
   Color us = sideToMove;
   Color them = ~us;
@@ -765,8 +765,8 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       // Update incremental scores
       st->psq -= PSQT::psq[captured][capsq];
 
-      // Reset rule 50 counter
-      st->rule50 = 0;
+      // Reset rule 50 counter and draw search depth
+      st->rule50 = st->drawDepth = 0;
   }
 
   // Update hash key
@@ -829,8 +829,8 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
       st->pawnKey ^= Zobrist::psq[pc][from] ^ Zobrist::psq[pc][to];
       prefetch(thisThread->pawnsTable[st->pawnKey]);
 
-      // Reset rule 50 draw counter
-      st->rule50 = 0;
+      // Reset rule 50 counter and draw search depth
+      st->rule50 = st->drawDepth = 0;
   }
 
   // Update incremental scores
@@ -838,6 +838,9 @@ void Position::do_move(Move m, StateInfo& newSt, bool givesCheck) {
 
   // Set capture piece
   st->capturedPiece = captured;
+
+  // Draw at first repetition
+  st->draw = true;
 
   // Update the key with the final value
   st->key = k;
@@ -959,7 +962,10 @@ void Position::do_null_move(StateInfo& newSt) {
   prefetch(TT.first_entry(st->key));
 
   ++st->rule50;
-  st->pliesFromNull = 0;
+  st->drawDepth = 0;
+
+  // Draw at first repetition
+  st->draw = true;
 
   sideToMove = ~sideToMove;
 
@@ -1076,6 +1082,27 @@ bool Position::see_ge(Move m, Value v) const {
 }
 
 
+/// Position::calc_draw() calculates the value of st->draw - the boolean meaning
+/// the position occurred before in the game. This function is called for positions
+/// up to the root, so recursion into some of them becomes possible during search.
+
+void Position::calc_draw() {
+
+  for (StateInfo* stp = st; stp->drawDepth > 1; )
+  {
+      stp = stp->previous->previous;
+
+      if (stp->key == st->key)
+      {
+          st->draw = true;
+          return;
+      }
+  }
+
+  st->draw = false;
+}
+
+
 /// Position::is_draw() tests whether the position is drawn by 50-move rule
 /// or by repetition. It does not detect stalemates.
 
@@ -1084,20 +1111,18 @@ bool Position::is_draw() const {
   if (st->rule50 > 99 && (!checkers() || MoveList<LEGAL>(*this).size()))
       return true;
 
-  int e = std::min(st->rule50, st->pliesFromNull);
+  if (st->drawDepth > 3)
+  {
+      StateInfo* stp = st->previous->previous;
 
-  if (e < 4)
-    return false;
+      do
+      {
+          stp = stp->previous->previous;
 
-  StateInfo* stp = st->previous->previous;
-
-  do {
-      stp = stp->previous->previous;
-
-      if (stp->key == st->key)
-          return true; // Draw at first repetition
-
-  } while ((e -= 2) >= 4);
+          if (stp->key == st->key)
+              return stp->draw;
+      } while (stp->drawDepth > 1);
+  }
 
   return false;
 }
