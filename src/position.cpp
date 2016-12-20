@@ -1111,17 +1111,12 @@ bool Position::is_draw() const {
   if (st->rule50 > 99 && (!checkers() || MoveList<LEGAL>(*this).size()))
       return true;
 
-  if (st->drawDepth > 3)
+  for (StateInfo* stp = st; stp->drawDepth > 1; )
   {
-      StateInfo* stp = st->previous->previous;
+      stp = stp->previous->previous;
 
-      do
-      {
-          stp = stp->previous->previous;
-
-          if (stp->key == st->key)
-              return stp->draw;
-      } while (stp->drawDepth > 1);
+      if (stp->key == st->key)
+          return stp->draw;
   }
 
   return false;
