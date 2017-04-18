@@ -174,7 +174,7 @@ namespace {
         else if (!supported)
             score -= Unsupported;
 
-        if (connected)
+        else if (connected)
             score += Connected[opposed][!!phalanx][more_than_one(supported)][relative_rank(Us, s)];
 
         if (doubled && !supported)
