@@ -41,7 +41,7 @@ namespace {
   const Score Unsupported = S(17, 8);
 
   // Connected pawn bonus by opposed, phalanx, twice supported and rank
-  Score Connected[2][2][2][RANK_NB];
+  Score Connected[2][2][RANK_NB];
 
   // Doubled pawn penalty
   const Score Doubled = S(18, 38);
@@ -175,7 +175,7 @@ namespace {
             score -= Unsupported;
 
         if (connected)
-            score += Connected[opposed][!!phalanx][more_than_one(supported)][relative_rank(Us, s)];
+            score += Connected[opposed][!!phalanx][relative_rank(Us, s)];
 
         if (doubled && !supported)
            score -= Doubled;
@@ -201,12 +201,10 @@ void init() {
 
   for (int opposed = 0; opposed <= 1; ++opposed)
       for (int phalanx = 0; phalanx <= 1; ++phalanx)
-          for (int apex = 0; apex <= 1; ++apex)
-              for (Rank r = RANK_2; r < RANK_8; ++r)
+          for (Rank r = RANK_2; r < RANK_8; ++r)
   {
       int v = (Seed[r] + (phalanx ? (Seed[r + 1] - Seed[r]) / 2 : 0)) >> opposed;
-      v += (apex ? v / 2 : 0);
-      Connected[opposed][phalanx][apex][r] = make_score(v, v * (r-2) / 4);
+      Connected[opposed][phalanx][r] = make_score(v, v * (r-2) / 4);
   }
 }
 
