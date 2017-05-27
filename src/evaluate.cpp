@@ -183,6 +183,7 @@ namespace {
   const Score RookOnPawn          = S(  8, 24);
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
+  const Score OtherCheck          = S(  9,  9);
   const Score CloseEnemies        = S(  7,  0);
   const Score PawnlessFlank       = S( 20, 80);
   const Score ThreatByHangingPawn = S( 71, 61);
@@ -208,7 +209,6 @@ namespace {
   const int RookCheck   = 880;
   const int BishopCheck = 435;
   const int KnightCheck = 790;
-  const int OtherCheck  = 111;
 
   // Threshold for lazy and space evaluation
   const Value LazyThreshold  = Value(1500);
@@ -457,14 +457,14 @@ namespace {
             kingDanger += RookCheck;
 
         else
-            kingDanger += OtherCheck * popcount(b1 & ei.attackedBy[Them][ROOK] & other);
+            score -= OtherCheck * popcount(b1 & ei.attackedBy[Them][ROOK] & other);
 
         // Enemy bishops safe and other checks
         if (b2 & ei.attackedBy[Them][BISHOP] & safe)
             kingDanger += BishopCheck;
 
         else
-            kingDanger += OtherCheck * popcount(b2 & ei.attackedBy[Them][BISHOP] & other);
+            score -= OtherCheck * popcount(b2 & ei.attackedBy[Them][BISHOP] & other);
 
         // Enemy knights safe and other checks
         b = pos.attacks_from<KNIGHT>(ksq) & ei.attackedBy[Them][KNIGHT];
@@ -472,7 +472,7 @@ namespace {
             kingDanger += KnightCheck;
 
         else
-            kingDanger += OtherCheck * popcount(b & other);
+            score -= OtherCheck * popcount(b & other);
 
         // Transform the kingDanger units into a Score, and substract it from the evaluation
         if (kingDanger > 0)
