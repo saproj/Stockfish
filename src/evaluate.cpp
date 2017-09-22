@@ -208,7 +208,7 @@ namespace {
   const Score TrappedRook         = S( 92,  0);
   const Score WeakQueen           = S( 50, 10);
   const Score OtherCheck          = S( 10, 10);
-  const Score CloseEnemies        = S(  7,  0);
+  const Score CloseEnemies        = S(  6,  0);
   const Score PawnlessFlank       = S( 20, 80);
   const Score ThreatByHangingPawn = S( 71, 61);
   const Score ThreatBySafePawn    = S(182,175);
@@ -400,8 +400,15 @@ namespace {
   const Bitboard CenterFiles = FileCBB | FileDBB | FileEBB | FileFBB;
   const Bitboard KingSide    = FileEBB | FileFBB | FileGBB | FileHBB;
 
-  const Bitboard KingFlank[FILE_NB] = {
-    QueenSide, QueenSide, QueenSide, CenterFiles, CenterFiles, KingSide, KingSide, KingSide
+  const Bitboard KingFiles[FILE_NB] = {
+    FileABB | FileBBB | FileCBB,
+    FileABB | FileBBB | FileCBB | FileDBB,
+    FileABB | FileBBB | FileCBB | FileDBB | FileEBB,
+              FileBBB | FileCBB | FileDBB | FileEBB | FileFBB,
+                        FileCBB | FileDBB | FileEBB | FileFBB | FileGBB,
+                                  FileDBB | FileEBB | FileFBB | FileGBB | FileHBB,
+                                            FileEBB | FileFBB | FileGBB | FileHBB,
+                                                      FileFBB | FileGBB | FileHBB
   };
 
   template<Tracing T>  template<Color Us>
@@ -498,7 +505,7 @@ namespace {
 
     // King tropism: firstly, find squares that opponent attacks in our king flank
     File kf = file_of(ksq);
-    b = attackedBy[Them][ALL_PIECES] & KingFlank[kf] & Camp;
+    b = attackedBy[Them][ALL_PIECES] & KingFiles[kf] & Camp;
 
     assert(((Us == WHITE ? b << 4 : b >> 4) & b) == 0);
     assert(popcount(Us == WHITE ? b << 4 : b >> 4) == popcount(b));
@@ -511,7 +518,7 @@ namespace {
     score -= CloseEnemies * popcount(b);
 
     // Penalty when our king is on a pawnless flank
-    if (!(pos.pieces(PAWN) & KingFlank[kf]))
+    if (!(pos.pieces(PAWN) & KingFiles[kf]))
         score -= PawnlessFlank;
 
     if (T)
